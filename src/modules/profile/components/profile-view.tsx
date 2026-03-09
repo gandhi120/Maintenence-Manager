@@ -6,12 +6,6 @@ import { User, Phone, Bell, Moon, Info, LogOut, Camera, ChevronRight } from 'luc
 import { useAuth } from '@/shared/providers/auth-provider'
 import { AddTechnicianModal } from './add-technician-modal'
 
-const demoTeam = [
-  { name: 'Amit Sharma', phone: '+91 98765 00001', role: 'Technician', status: 'online' },
-  { name: 'Priya Patel', phone: '+91 98765 00002', role: 'Technician', status: 'online' },
-  { name: 'Suresh Reddy', phone: '+91 98765 00003', role: 'Technician', status: 'offline' },
-]
-
 interface ProfileViewProps {
   profile: { id: string; name: string; mobile_number: string; avatar_url: string | null; role: string } | null
   teamMembers?: Array<{
@@ -25,8 +19,8 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
   const router = useRouter()
   const { role } = useAuth()
   const [showAddTechnician, setShowAddTechnician] = useState(false)
-  const name = profile?.name || 'Rajesh Kumar'
-  const phone = profile?.mobile_number || '+91 98765 43210'
+  const name = profile?.name || ''
+  const phone = profile?.mobile_number || ''
   const displayRole = role === 'technician' ? 'Technician' : 'Manager'
   const isManager = role !== 'technician'
 
@@ -38,14 +32,12 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
     ? 'from-[#38BDF8] to-[#0284C7]'
     : 'from-[#8B5CF6] to-[#6D28D9]'
 
-  const team = teamMembers && teamMembers.length > 0
-    ? teamMembers.map(m => ({
-        name: m.user?.name || 'Unknown',
-        phone: m.user?.mobile_number || '',
-        role: m.role === 'technician' ? 'Technician' : 'Manager',
-        status: 'online' as const,
-      }))
-    : demoTeam
+  const team = (teamMembers || []).map(m => ({
+    name: m.user?.name || '',
+    phone: m.user?.mobile_number || '',
+    role: m.role === 'technician' ? 'Technician' : 'Manager',
+    status: 'online' as const,
+  }))
 
   return (
     <div className="min-h-screen bg-[#09090B] pb-24">
@@ -66,8 +58,14 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
                 <Camera className="w-3 h-3 text-white" />
               </button>
             </div>
-            <h2 className="text-xl font-bold text-[#FAFAFA] mb-1">{name}</h2>
-            <p className="text-sm text-[#A1A1AA] mb-2">{phone}</p>
+            {name ? (
+              <>
+                <h2 className="text-xl font-bold text-[#FAFAFA] mb-1">{name}</h2>
+                <p className="text-sm text-[#A1A1AA] mb-2">{phone}</p>
+              </>
+            ) : (
+              <h2 className="text-xl font-bold text-[#FAFAFA] mb-2">{phone}</h2>
+            )}
             <span className={`text-xs px-3 py-1 rounded-full ${roleBadgeColor}`}>
               {displayRole}
             </span>
@@ -146,15 +144,21 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
               >
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {member.name.split(' ').map(n => n[0]).join('')}
+                    {member.name ? member.name.split(' ').map(n => n[0]).join('') : <User className="w-5 h-5 text-white" />}
                   </div>
                   <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#18181B] ${
                     member.status === 'online' ? 'bg-[#10B981]' : 'bg-[#71717A]'
                   }`}></div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#FAFAFA]">{member.name}</p>
-                  <p className="text-xs text-[#A1A1AA]">{member.phone}</p>
+                  {member.name ? (
+                    <>
+                      <p className="text-sm font-medium text-[#FAFAFA]">{member.name}</p>
+                      <p className="text-xs text-[#A1A1AA]">{member.phone}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm font-medium text-[#FAFAFA]">{member.phone}</p>
+                  )}
                 </div>
                 <span className="text-xs bg-[#27272A] text-[#A1A1AA] px-2 py-1 rounded-md">
                   {member.role}

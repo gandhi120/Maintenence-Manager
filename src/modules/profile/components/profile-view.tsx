@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { User, Phone, Bell, Moon, Info, LogOut, Camera, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { AddTechnicianModal } from './add-technician-modal'
+import { EditNameModal } from './edit-name-modal'
+import { EditPhoneModal } from './edit-phone-modal'
 
 interface ProfileViewProps {
   profile: { id: string; name: string; mobile_number: string; avatar_url: string | null; role: string } | null
@@ -19,6 +21,8 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
   const router = useRouter()
   const { role } = useAuth()
   const [showAddTechnician, setShowAddTechnician] = useState(false)
+  const [showEditName, setShowEditName] = useState(false)
+  const [showEditPhone, setShowEditPhone] = useState(false)
   const name = profile?.name || ''
   const phone = profile?.mobile_number || ''
   const displayRole = role === 'technician' ? 'Technician' : 'Manager'
@@ -77,12 +81,12 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
           <div className="p-4 border-b border-[#3F3F46]">
             <h3 className="text-sm font-semibold text-[#FAFAFA]">Account</h3>
           </div>
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-[#27272A] transition-colors border-b border-[#3F3F46]">
+          <button onClick={() => setShowEditName(true)} className="w-full flex items-center gap-3 p-4 hover:bg-[#27272A] transition-colors border-b border-[#3F3F46]">
             <User className="w-5 h-5 text-[#A1A1AA]" />
             <span className="flex-1 text-left text-[#FAFAFA]">Edit Name</span>
             <ChevronRight className="w-4 h-4 text-[#A1A1AA]" />
           </button>
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-[#27272A] transition-colors">
+          <button onClick={() => setShowEditPhone(true)} className="w-full flex items-center gap-3 p-4 hover:bg-[#27272A] transition-colors">
             <Phone className="w-5 h-5 text-[#A1A1AA]" />
             <span className="flex-1 text-left text-[#FAFAFA]">Edit Phone</span>
             <ChevronRight className="w-4 h-4 text-[#A1A1AA]" />
@@ -209,6 +213,20 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
           onOpenChange={setShowAddTechnician}
         />
       )}
+
+      {/* Edit Name Modal */}
+      <EditNameModal
+        open={showEditName}
+        onOpenChange={setShowEditName}
+        currentName={name}
+      />
+
+      {/* Edit Phone Modal */}
+      <EditPhoneModal
+        open={showEditPhone}
+        onOpenChange={setShowEditPhone}
+        currentPhone={phone}
+      />
     </div>
   )
 }

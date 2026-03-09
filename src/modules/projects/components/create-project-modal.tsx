@@ -14,27 +14,40 @@ const colors = [
   { value: '#06B6D4', label: 'Cyan' },
 ]
 
+const defaultFormData = {
+  name: '',
+  location: '',
+  description: '',
+  color: '#8B5CF6',
+}
+
 export function CreateProjectModal({ open, onOpenChange, onClose: onCloseProp }: { open?: boolean; onOpenChange?: (open: boolean) => void; onClose?: () => void }) {
   const onClose = onCloseProp || (() => onOpenChange?.(false))
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    name: '',
-    location: '',
-    description: '',
-    color: '#8B5CF6',
-  })
+  const [formData, setFormData] = useState(defaultFormData)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (open === false) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError(null)
     try {
-      await createProject(formData)
+      const result = await createProject(formData)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      setFormData(defaultFormData)
+      onClose()
+      router.refresh()
     } catch {
-      // demo mode
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    onClose()
-    router.refresh()
   }
 
   return (
@@ -131,12 +144,19 @@ export function CreateProjectModal({ open, onOpenChange, onClose: onCloseProp }:
               </div>
             </div>
 
+            {error && (
+              <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">
+                {error}
+              </p>
+            )}
+
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                className="flex-1 h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium"
+                disabled={loading}
+                className="flex-1 h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Project
+                {loading ? 'Creating...' : 'Create Project'}
               </button>
               <button
                 type="button"

@@ -5,6 +5,7 @@ import { Search, Plus, MapPin, Settings, AlertCircle, FileText } from 'lucide-re
 import Link from 'next/link'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canCreateProject } from '@/lib/utils/permissions'
+import { CreateProjectModal } from './create-project-modal'
 
 function getHealthColor(health: string) {
   if (health === 'green') return 'bg-[#10B981]'
@@ -18,6 +19,7 @@ interface ProjectsListProps {
 
 export function ProjectsList({ projects }: ProjectsListProps) {
   const [search, setSearch] = useState('')
+  const [showModal, setShowModal] = useState(false)
   const { role } = useAuth()
   const showCreate = canCreateProject(role)
 
@@ -52,13 +54,13 @@ export function ProjectsList({ projects }: ProjectsListProps) {
             />
           </div>
           {showCreate && (
-            <Link
-              href="/projects/new"
+            <button
+              onClick={() => setShowModal(true)}
               className="h-10 px-4 bg-[#8B5CF6] text-white rounded-lg flex items-center gap-2 hover:bg-[#7C3AED] transition-colors whitespace-nowrap font-medium"
             >
               <Plus className="w-5 h-5" />
               New
-            </Link>
+            </button>
           )}
         </div>
       </div>
@@ -117,6 +119,8 @@ export function ProjectsList({ projects }: ProjectsListProps) {
           </Link>
         ))}
       </div>
+
+      <CreateProjectModal open={showModal} onOpenChange={setShowModal} />
     </>
   )
 }

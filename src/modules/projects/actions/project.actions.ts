@@ -11,14 +11,18 @@ export async function getProjects(search?: string) {
   let query = supabase
     .from('projects')
     .select('*')
-    .or(`owner_id.eq.${user.id},id.in.(select project_id from team_members where user_id = '${user.id}')`)
     .order('created_at', { ascending: false })
 
   if (search) {
     query = query.ilike('name', `%${search}%`)
   }
 
-  const { data } = await query
+  const { data, error } = await query
+
+  if (error) {
+    console.log('getProjects error:', error.message)
+    return []
+  }
 
   // Get open issue counts for each project
   if (data?.length) {
@@ -70,6 +74,11 @@ export async function createProject(formData: {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
+  console.log('createProject: user.id =', user.id)
+
+  // Debug: check what auth.uid() returns in the DB context
+  const { data: uidCheck } = await supabase.rpc('get_uid_debug').maybeSingle()
+  console.log('createProject: auth.uid() in DB =', uidCheck)
 
   const { data, error } = await supabase
     .from('projects')
@@ -80,7 +89,10 @@ export async function createProject(formData: {
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.log('createProject error:', error.message, error.code, error.details)
+    return { error: error.message }
+  }
 
   // Log activity
   await supabase.from('activity_log').insert({

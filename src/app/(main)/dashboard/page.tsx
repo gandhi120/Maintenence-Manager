@@ -77,9 +77,12 @@ export default async function DashboardPage() {
 
   // Manager Dashboard (default / demo)
   let stats = null
-  let criticalIssues: never[] = []
-  let upcomingMaintenance: never[] = []
-  let recentActivity: never[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let rawCriticalIssues: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let rawUpcomingMaintenance: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let rawRecentActivity: any[] = []
 
   try {
     const results = await Promise.all([
@@ -89,12 +92,48 @@ export default async function DashboardPage() {
       getRecentActivity(),
     ])
     stats = results[0]
-    criticalIssues = results[1] as never[]
-    upcomingMaintenance = results[2] as never[]
-    recentActivity = results[3] as never[]
+    rawCriticalIssues = results[1] || []
+    rawUpcomingMaintenance = results[2] || []
+    rawRecentActivity = results[3] || []
   } catch {
     // Supabase not configured yet
   }
+
+  // Transform critical issues to component format
+  const criticalIssues = rawCriticalIssues.map((issue) => {
+    const createdAt = new Date(issue.created_at)
+    const hoursAgo = Math.round((Date.now() - createdAt.getTime()) / (1000 * 60 * 60))
+    const timeLabel = hoursAgo < 1 ? 'Just now' : hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.round(hoursAgo / 24)}d ago`
+    return {
+      id: issue.id,
+      title: issue.title,
+      project: issue.project?.name || 'Unknown',
+      projectColor: `bg-[${issue.project?.color || '#8B5CF6'}]`,
+      machine: issue.machine?.name || 'Unknown',
+      priority: issue.priority,
+      time: timeLabel,
+    }
+  })
+
+  // Transform upcoming maintenance to component format
+  const upcomingMaintenance = rawUpcomingMaintenance.map((m) => {
+    const dueDate = new Date(m.next_maintenance_date)
+    const daysUntil = Math.max(0, Math.round((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    return {
+      machine: m.name,
+      project: m.project?.name || 'Unknown',
+      projectColor: `bg-[${m.project?.color || '#8B5CF6'}]`,
+      dueIn: daysUntil === 0 ? 'Today' : `${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
+    }
+  })
+
+  // Transform recent activity
+  const recentActivity = rawRecentActivity.map((a) => ({
+    id: a.id,
+    action: a.action,
+    description: a.description,
+    created_at: a.created_at,
+  }))
 
   return (
     <div className="min-h-screen bg-[#09090B]">
@@ -112,17 +151,10 @@ export default async function DashboardPage() {
       </div>
 
       <div className="p-4 space-y-6 pb-24">
-        {/* Stats Grid */}
         <StatsGrid stats={stats} />
-
-        {/* Critical Issues */}
-        <CriticalIssuesFeed issues={criticalIssues as never[]} />
-
-        {/* Upcoming Maintenance */}
-        <UpcomingMaintenance machines={upcomingMaintenance as never[]} />
-
-        {/* Recent Activity */}
-        <RecentActivity activities={recentActivity as never[]} />
+        <CriticalIssuesFeed issues={criticalIssues} />
+        <UpcomingMaintenance machines={upcomingMaintenance} />
+        <RecentActivity activities={recentActivity} />
       </div>
     </div>
   )

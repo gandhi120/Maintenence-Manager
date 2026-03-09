@@ -81,6 +81,9 @@ export async function getUpcomingMaintenance() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
+  const thirtyDaysFromNow = new Date()
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
+
   const { data } = await supabase
     .from('machines')
     .select(`
@@ -88,6 +91,7 @@ export async function getUpcomingMaintenance() {
       project:projects(id, name, color)
     `)
     .not('next_maintenance_date', 'is', null)
+    .lte('next_maintenance_date', thirtyDaysFromNow.toISOString().split('T')[0])
     .order('next_maintenance_date', { ascending: true })
     .limit(5)
 

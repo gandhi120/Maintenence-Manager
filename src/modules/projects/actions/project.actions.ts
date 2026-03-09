@@ -24,21 +24,20 @@ export async function getProjects(search?: string) {
     return []
   }
 
-  // Get open issue counts for each project
+  // Get machine counts for each project
   if (data?.length) {
     const projectIds = data.map(p => p.id)
-    const { data: issueCounts } = await supabase
-      .from('issues')
+    const { data: machineCounts } = await supabase
+      .from('machines')
       .select('project_id')
       .in('project_id', projectIds)
-      .neq('status', 'resolved')
 
     const countMap: Record<string, number> = {}
-    issueCounts?.forEach(i => {
-      countMap[i.project_id] = (countMap[i.project_id] || 0) + 1
+    machineCounts?.forEach(m => {
+      countMap[m.project_id] = (countMap[m.project_id] || 0) + 1
     })
 
-    return data.map(p => ({ ...p, open_issue_count: countMap[p.id] || 0 }))
+    return data.map(p => ({ ...p, machine_count: countMap[p.id] || 0 }))
   }
 
   return data || []

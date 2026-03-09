@@ -70,14 +70,14 @@ export function MachinesGrid({ machines, projectId }: MachinesGridProps) {
           <p className="text-sm text-[#A1A1AA]">Machines are not found</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {filtered.map((machine) => (
             <Link
               key={machine.id}
               href={`/projects/${projectId}/machines/${machine.id}`}
               className="bg-[#18181B] border border-[#3F3F46] rounded-xl overflow-hidden hover:border-[#8B5CF6]/50 transition-all"
             >
-              <div className="aspect-video bg-[#27272A] relative overflow-hidden">
+              <div className="w-full h-32 bg-[#27272A] relative overflow-hidden">
                 {machine.image_url ? (
                   <img
                     src={machine.image_url}

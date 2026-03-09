@@ -1,20 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Plus, MapPin, Settings, AlertCircle, FileText } from 'lucide-react'
+import { Search, Plus, MapPin, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canCreateProject } from '@/lib/utils/permissions'
 import { CreateProjectModal } from './create-project-modal'
 
-function getHealthColor(health: string) {
-  if (health === 'green') return 'bg-[#10B981]'
-  if (health === 'amber') return 'bg-[#F59E0B]'
-  return 'bg-[#F43F5E]'
-}
-
 interface ProjectsListProps {
-  projects: Array<{ id: string; name: string; location: string | null; color: string }>
+  projects: Array<{ id: string; name: string; location: string | null; color: string; machine_count?: number }>
 }
 
 export function ProjectsList({ projects }: ProjectsListProps) {
@@ -26,11 +20,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   const displayProjects = projects.map(p => ({
     ...p,
     location: p.location || 'Unknown',
-    machines: 0,
-    openIssues: 0,
-    activeOrders: 0,
-    color: `bg-[${p.color}]`,
-    health: 'green',
+    machines: p.machine_count || 0,
   }))
 
   const filtered = displayProjects.filter(p =>
@@ -87,7 +77,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className={`w-2 h-2 rounded-full ${project.color}`}></div>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: project.color }}></div>
                   <h2 className="text-base font-semibold text-[#FAFAFA]">{project.name}</h2>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-[#A1A1AA]">
@@ -97,24 +87,12 @@ export function ProjectsList({ projects }: ProjectsListProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1.5 px-2 py-1 bg-[#27272A] rounded-md text-xs">
                 <Settings className="w-3 h-3 text-[#A1A1AA]" />
                 <span className="text-[#FAFAFA]">{project.machines}</span>
+                <span className="text-[#A1A1AA]">Machines</span>
               </div>
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-[#27272A] rounded-md text-xs">
-                <AlertCircle className="w-3 h-3 text-[#F43F5E]" />
-                <span className="text-[#FAFAFA]">{project.openIssues}</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-[#27272A] rounded-md text-xs">
-                <FileText className="w-3 h-3 text-[#8B5CF6]" />
-                <span className="text-[#FAFAFA]">{project.activeOrders}</span>
-              </div>
-            </div>
-
-            {/* Health Bar */}
-            <div className="w-full h-1 bg-[#27272A] rounded-full overflow-hidden">
-              <div className={`h-full ${getHealthColor(project.health)}`} style={{ width: '65%' }}></div>
             </div>
           </Link>
         ))}

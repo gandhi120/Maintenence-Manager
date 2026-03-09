@@ -1,38 +1,87 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Calendar, AlertCircle, Wrench, Edit } from 'lucide-react'
+import { ArrowLeft, Calendar, Wrench, Edit } from 'lucide-react'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canEditMachine, canLogMaintenance } from '@/lib/utils/permissions'
-
-const demoMaintenanceHistory = [
-  { date: '10 Mar 2025', technician: 'Amit Sharma', type: 'Routine Checkup', notes: 'All systems normal. Hydraulic fluid level checked and topped off.' },
-  { date: '8 Feb 2025', technician: 'Priya Patel', type: 'Oil Change', notes: 'Replaced hydraulic fluid. Inspected hoses and connections.' },
-  { date: '5 Jan 2025', technician: 'Amit Sharma', type: 'Repair', notes: 'Fixed boom rotation motor. Replaced worn gear assembly.' },
-]
+import { LogMaintenanceModal } from './log-maintenance-modal'
 
 interface MachineDetailViewProps {
-  machine: { id: string; name: string; type: string; status: string; serial_number: string | null; zone: string | null; image_url: string | null; last_maintenance_date: string | null; maintenance_cycle_days: number; created_at: string } | null
+  machine: {
+    id: string
+    name: string
+    type: string
+    status: string
+    serial_number: string | null
+    zone: string | null
+    image_url: string | null
+    last_maintenance_date: string | null
+    maintenance_cycle_days: number
+    next_maintenance_date: string | null
+    created_at: string
+    project?: { id: string; name: string; color: string; location: string } | null
+  } | null
   projectId: string
   machineId: string
+  maintenanceLog: Array<{
+    id: string
+    date: string
+    maintenance_type: string
+    notes: string | null
+    technician?: { id: string; name: string } | null
+  }>
 }
 
-export function MachineDetailView({ machine, projectId }: MachineDetailViewProps) {
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return 'N/A'
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function formatType(type: string): string {
+  return type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+function getDaysUntilNext(lastDate: string | null, cycleDays: number): { nextDate: string; daysAway: number; elapsed: number } | null {
+  if (!lastDate) return null
+  const last = new Date(lastDate)
+  const next = new Date(last)
+  next.setDate(next.getDate() + cycleDays)
+  const now = new Date()
+  const daysAway = Math.ceil((next.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  const elapsed = Math.max(0, Math.ceil((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24)))
+  return {
+    nextDate: next.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+    daysAway,
+    elapsed: Math.min(elapsed, cycleDays),
+  }
+}
+
+export function MachineDetailView({ machine, projectId, maintenanceLog }: MachineDetailViewProps) {
   const router = useRouter()
   const { role } = useAuth()
   const showEdit = canEditMachine(role)
   const showLogMaintenance = canLogMaintenance(role)
+  const [logMaintenanceOpen, setLogMaintenanceOpen] = useState(false)
 
-  const name = machine?.name || 'Tower Crane'
-  const type = machine?.type || 'Crane'
-  const status = machine?.status === 'active' ? 'Active' : machine?.status === 'under_repair' ? 'Under Repair' : 'Inactive'
+  if (!machine) {
+    return (
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-sm text-[#A1A1AA] mb-4">Machine not found</p>
+          <button onClick={() => router.push(`/projects/${projectId}/machines`)} className="text-sm text-[#8B5CF6] hover:underline">
+            Back to machines
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const status = machine.status === 'active' ? 'Active' : machine.status === 'under_repair' ? 'Under Repair' : 'Inactive'
   const statusColor = status === 'Active' ? 'bg-[#10B981]' : status === 'Under Repair' ? 'bg-[#F43F5E]' : 'bg-[#71717A]'
-  const serial = machine?.serial_number || '#TC-2024-001'
-  const zone = machine?.zone || 'Zone 2'
-  const imageUrl = machine?.image_url || 'https://images.unsplash.com/photo-1659449082344-53f79e1e4198?w=1080&fit=crop'
-  const cycleDays = machine?.maintenance_cycle_days || 30
-  const elapsed = 18
-  const progress = Math.round((elapsed / cycleDays) * 100)
+  const cycleDays = machine.maintenance_cycle_days
+  const maintenance = getDaysUntilNext(machine.last_maintenance_date, cycleDays)
+  const progress = maintenance ? Math.round((maintenance.elapsed / cycleDays) * 100) : 0
 
   return (
     <div className="min-h-screen bg-[#09090B] pb-24">
@@ -43,21 +92,27 @@ export function MachineDetailView({ machine, projectId }: MachineDetailViewProps
             <ArrowLeft className="w-6 h-6 text-[#FAFAFA]" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-[#FAFAFA]">{name}</h1>
+            <h1 className="text-xl font-bold text-[#FAFAFA]">{machine.name}</h1>
           </div>
         </div>
-        <p className="text-xs text-[#A1A1AA] ml-14">Site A &gt; {name}</p>
+        {machine.project && (
+          <p className="text-xs text-[#A1A1AA] ml-14">{machine.project.name} &gt; {machine.name}</p>
+        )}
       </div>
 
       <div className="space-y-4">
         {/* Hero Image */}
         <div className="relative h-48 w-full bg-[#27272A] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] to-transparent z-10"></div>
-          <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+          {machine.image_url ? (
+            <img src={machine.image_url} alt={machine.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[#52525B] text-sm">No Image</div>
+          )}
           <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white mb-1">{name}</h2>
-              <span className="text-xs bg-[#27272A]/80 text-[#A1A1AA] px-2 py-1 rounded-md backdrop-blur-sm">{type}</span>
+              <h2 className="text-lg font-bold text-white mb-1">{machine.name}</h2>
+              <span className="text-xs bg-[#27272A]/80 text-[#A1A1AA] px-2 py-1 rounded-md backdrop-blur-sm">{machine.type}</span>
             </div>
             <span className={`${statusColor} text-white text-xs px-3 py-1 rounded-full flex items-center gap-1`}>
               <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -72,15 +127,15 @@ export function MachineDetailView({ machine, projectId }: MachineDetailViewProps
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-[#A1A1AA] mb-1">Serial Number</p>
-                <p className="text-sm text-[#FAFAFA] font-medium">{serial}</p>
+                <p className="text-sm text-[#FAFAFA] font-medium">{machine.serial_number || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-[#A1A1AA] mb-1">Location</p>
-                <p className="text-sm text-[#FAFAFA] font-medium">{zone}</p>
+                <p className="text-sm text-[#FAFAFA] font-medium">{machine.zone || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-[#A1A1AA] mb-1">Added</p>
-                <p className="text-sm text-[#FAFAFA] font-medium">10 Jan 2025</p>
+                <p className="text-sm text-[#FAFAFA] font-medium">{formatDate(machine.created_at)}</p>
               </div>
               <div>
                 <p className="text-xs text-[#A1A1AA] mb-1">Status</p>
@@ -90,77 +145,97 @@ export function MachineDetailView({ machine, projectId }: MachineDetailViewProps
           </div>
 
           {/* Next Maintenance Card */}
-          <div className="bg-[#18181B] border-l-4 border-[#F59E0B] border-r border-t border-b border-r-[#3F3F46] border-t-[#3F3F46] border-b-[#3F3F46] rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[#F59E0B] blur-lg opacity-20"></div>
-                <Calendar className="relative w-5 h-5 text-[#F59E0B]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-[#FAFAFA] mb-2">Next Maintenance</h3>
-                <p className="text-lg font-bold text-[#FAFAFA] mb-1">April 9, 2025</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-[#F59E0B]/20 text-[#F59E0B] px-2 py-1 rounded-md">12 days away</span>
-                  <span className="text-xs text-[#A1A1AA]">Cycle: {cycleDays} days</span>
+          {maintenance ? (
+            <div className="bg-[#18181B] border-l-4 border-[#F59E0B] border-r border-t border-b border-r-[#3F3F46] border-t-[#3F3F46] border-b-[#3F3F46] rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#F59E0B] blur-lg opacity-20"></div>
+                  <Calendar className="relative w-5 h-5 text-[#F59E0B]" />
                 </div>
-                {/* Progress Ring */}
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="relative w-12 h-12">
-                    <svg className="transform -rotate-90 w-12 h-12">
-                      <circle cx="24" cy="24" r="20" stroke="#27272A" strokeWidth="4" fill="none" />
-                      <circle cx="24" cy="24" r="20" stroke="#8B5CF6" strokeWidth="4" fill="none" strokeDasharray={`${(elapsed / cycleDays) * 125.6} 125.6`} />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-medium text-[#FAFAFA]">{progress}%</span>
-                    </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-[#FAFAFA] mb-2">Next Maintenance</h3>
+                  <p className="text-lg font-bold text-[#FAFAFA] mb-1">{maintenance.nextDate}</p>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-1 rounded-md ${maintenance.daysAway <= 0 ? 'bg-[#F43F5E]/20 text-[#F43F5E]' : maintenance.daysAway <= 7 ? 'bg-[#F59E0B]/20 text-[#F59E0B]' : 'bg-[#10B981]/20 text-[#10B981]'}`}>
+                      {maintenance.daysAway <= 0 ? `${Math.abs(maintenance.daysAway)} days overdue` : `${maintenance.daysAway} days away`}
+                    </span>
+                    <span className="text-xs text-[#A1A1AA]">Cycle: {cycleDays} days</span>
                   </div>
-                  <div>
-                    <p className="text-xs text-[#A1A1AA]">{elapsed} of {cycleDays} days elapsed</p>
+                  {/* Progress Ring */}
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="relative w-12 h-12">
+                      <svg className="transform -rotate-90 w-12 h-12">
+                        <circle cx="24" cy="24" r="20" stroke="#27272A" strokeWidth="4" fill="none" />
+                        <circle cx="24" cy="24" r="20" stroke={maintenance.daysAway <= 0 ? '#F43F5E' : '#8B5CF6'} strokeWidth="4" fill="none" strokeDasharray={`${(maintenance.elapsed / cycleDays) * 125.6} 125.6`} />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs font-medium text-[#FAFAFA]">{progress}%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#A1A1AA]">{maintenance.elapsed} of {cycleDays} days elapsed</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-4 text-center">
+              <Calendar className="w-5 h-5 text-[#A1A1AA] mx-auto mb-2" />
+              <p className="text-sm text-[#A1A1AA]">No maintenance date recorded yet</p>
+            </div>
+          )}
 
           {/* Maintenance History */}
           <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-4">
             <h3 className="text-base font-semibold text-[#FAFAFA] mb-4">Maintenance History</h3>
-            <div className="space-y-4">
-              {demoMaintenanceHistory.map((entry, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="flex flex-col items-center pt-1">
-                    <div className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
-                    {index < demoMaintenanceHistory.length - 1 && (
-                      <div className="w-px flex-1 bg-[#3F3F46] my-1 min-h-[40px]" />
-                    )}
-                  </div>
-                  <div className="flex-1 pb-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-[#FAFAFA]">{entry.date}</span>
-                      <span className="text-xs text-[#A1A1AA]">•</span>
-                      <span className="text-xs text-[#A1A1AA]">{entry.technician}</span>
+            {maintenanceLog.length === 0 ? (
+              <p className="text-sm text-[#A1A1AA] text-center py-4">No maintenance records yet</p>
+            ) : (
+              <div className="space-y-4">
+                {maintenanceLog.map((entry, index) => (
+                  <div key={entry.id} className="flex gap-3">
+                    <div className="flex flex-col items-center pt-1">
+                      <div className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
+                      {index < maintenanceLog.length - 1 && (
+                        <div className="w-px flex-1 bg-[#3F3F46] my-1 min-h-[40px]" />
+                      )}
                     </div>
-                    <span className="text-xs bg-[#38BDF8]/20 text-[#38BDF8] px-2 py-0.5 rounded-md inline-block mb-2">{entry.type}</span>
-                    <p className="text-sm text-[#A1A1AA]">{entry.notes}</p>
+                    <div className="flex-1 pb-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium text-[#FAFAFA]">{formatDate(entry.date)}</span>
+                        {entry.technician && (
+                          <>
+                            <span className="text-xs text-[#A1A1AA]">•</span>
+                            <span className="text-xs text-[#A1A1AA]">{entry.technician.name}</span>
+                          </>
+                        )}
+                      </div>
+                      <span className="text-xs bg-[#38BDF8]/20 text-[#38BDF8] px-2 py-0.5 rounded-md inline-block mb-2">{formatType(entry.maintenance_type)}</span>
+                      {entry.notes && <p className="text-sm text-[#A1A1AA]">{entry.notes}</p>}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
-          <div className={`grid gap-3 ${showLogMaintenance ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <button onClick={() => router.push(`/projects/${projectId}/issues/new`)} className="h-12 bg-[#F43F5E] text-white rounded-lg hover:bg-[#E11D48] transition-colors font-medium flex items-center justify-center gap-2 shadow-lg shadow-[#F43F5E]/20">
-              <AlertCircle className="w-4 h-4" />
-              Report Issue
+          {showLogMaintenance && (
+            <button onClick={() => setLogMaintenanceOpen(true)} className="w-full h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium flex items-center justify-center gap-2">
+              <Wrench className="w-4 h-4" />
+              Log Maintenance
             </button>
-            {showLogMaintenance && (
-              <button className="h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium flex items-center justify-center gap-2">
-                <Wrench className="w-4 h-4" />
-                Log Maintenance
-              </button>
-            )}
-          </div>
+          )}
+
+          {showLogMaintenance && (
+            <LogMaintenanceModal
+              open={logMaintenanceOpen}
+              onOpenChange={setLogMaintenanceOpen}
+              machineId={machine.id}
+              projectId={projectId}
+            />
+          )}
           {showEdit && (
             <button className="w-full h-12 bg-transparent text-[#A1A1AA] rounded-lg border border-[#3F3F46] hover:bg-[#27272A] transition-colors font-medium flex items-center justify-center gap-2">
               <Edit className="w-4 h-4" />

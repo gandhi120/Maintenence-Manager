@@ -3,21 +3,57 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090B;
+  --surface: #18181B;
+  --elevated: #27272A;
+  --border: #3F3F46;
+  --primary: #FAFAFA;
+  --secondary: #A1A1AA;
+  --accent: #8B5CF6;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #F43F5E;
+  --info: #38BDF8;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer components {
+  .glass-card {
+    @apply relative overflow-hidden rounded-xl border border-border/50;
+    background: rgba(24, 24, 27, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 }
 
-body {
-  color: var(--foreground);
+@layer base {
+  body {
+    @apply bg-background text-primary;
+  }
+}
+
+/* Custom scrollbar styles for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--elevated);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--elevated) var(--background);
 }
 
 @layer utilities {

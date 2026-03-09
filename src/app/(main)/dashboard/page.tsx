@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   }
 
   const isTechnician = currentUser?.role === 'technician'
-  const userName = currentUser?.name || 'Rajesh'
+  const userName = currentUser?.name || (currentUser as { mobile_number?: string } | null)?.mobile_number || 'User'
 
   if (isTechnician && currentUser) {
     // Technician Dashboard

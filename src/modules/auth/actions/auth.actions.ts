@@ -71,7 +71,13 @@ export async function verifyOTP(phone: string, token: string) {
 
 export async function logout() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  console.log('--- Logout ---')
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Logout error:', error.message)
+  } else {
+    console.log('Logout successful — session cleared')
+  }
   revalidatePath('/', 'layout')
   redirect('/login')
 }

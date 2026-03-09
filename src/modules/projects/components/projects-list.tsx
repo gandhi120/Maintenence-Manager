@@ -6,49 +6,6 @@ import Link from 'next/link'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canCreateProject } from '@/lib/utils/permissions'
 
-const demoProjects = [
-  {
-    id: '1',
-    name: 'Construction Site A',
-    location: 'Mumbai',
-    machines: 12,
-    openIssues: 5,
-    activeOrders: 2,
-    color: 'bg-[#8B5CF6]',
-    health: 'amber',
-  },
-  {
-    id: '2',
-    name: 'Honda Factory Line 2',
-    location: 'Pune',
-    machines: 18,
-    openIssues: 2,
-    activeOrders: 1,
-    color: 'bg-[#10B981]',
-    health: 'green',
-  },
-  {
-    id: '3',
-    name: 'Tata Steel Plant',
-    location: 'Jamshedpur',
-    machines: 25,
-    openIssues: 8,
-    activeOrders: 5,
-    color: 'bg-[#F59E0B]',
-    health: 'red',
-  },
-  {
-    id: '4',
-    name: 'My Workshop',
-    location: 'Surat',
-    machines: 6,
-    openIssues: 1,
-    activeOrders: 0,
-    color: 'bg-[#38BDF8]',
-    health: 'green',
-  },
-]
-
 function getHealthColor(health: string) {
   if (health === 'green') return 'bg-[#10B981]'
   if (health === 'amber') return 'bg-[#F59E0B]'
@@ -64,7 +21,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   const { role } = useAuth()
   const showCreate = canCreateProject(role)
 
-  const displayProjects = projects.length > 0 ? projects.map(p => ({
+  const displayProjects = projects.map(p => ({
     ...p,
     location: p.location || 'Unknown',
     machines: 0,
@@ -72,7 +29,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
     activeOrders: 0,
     color: `bg-[${p.color}]`,
     health: 'green',
-  })) : demoProjects
+  }))
 
   const filtered = displayProjects.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -108,6 +65,17 @@ export function ProjectsList({ projects }: ProjectsListProps) {
 
       {/* Projects Grid */}
       <div className="p-4 space-y-3">
+        {filtered.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-full bg-[#27272A] flex items-center justify-center mb-4">
+              <Search className="w-7 h-7 text-[#52525B]" />
+            </div>
+            <h3 className="text-lg font-semibold text-[#FAFAFA] mb-1">No projects found</h3>
+            <p className="text-sm text-[#A1A1AA]">
+              {search ? 'Try a different search term' : 'You have no assigned projects yet'}
+            </p>
+          </div>
+        )}
         {filtered.map((project) => (
           <Link
             key={project.id}

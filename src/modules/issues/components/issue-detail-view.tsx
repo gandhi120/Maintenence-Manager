@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Calendar, MessageSquare } from 'lucide-react'
+import { useAuth } from '@/shared/providers/auth-provider'
+import { canCreateWorkOrder, canAssignWorkOrder } from '@/lib/utils/permissions'
+import { WorkOrderNotesTimeline } from '@/modules/work-orders/components/work-order-notes-timeline'
 
 const statuses = [
   { label: 'Open', color: 'text-[#A1A1AA]' },
@@ -21,16 +24,21 @@ interface IssueDetailViewProps {
   issue: { id: string; title: string; description: string | null; priority: string; status: string } | null
   projectId: string
   issueId: string
+  workOrderId?: string | null
 }
 
-export function IssueDetailView({ issue, projectId }: IssueDetailViewProps) {
+export function IssueDetailView({ issue, projectId, workOrderId }: IssueDetailViewProps) {
   const router = useRouter()
+  const { role } = useAuth()
   const [currentStatus, setCurrentStatus] = useState(2)
   const [formData, setFormData] = useState({
     technician: 'Amit Sharma',
     completionDate: '2025-03-12',
     repairNotes: 'Inspected hydraulic lines. Seal replacement needed. Parts ordered.',
   })
+
+  const showCreateWorkOrder = canCreateWorkOrder(role)
+  const showAssign = canAssignWorkOrder(role)
 
   const title = issue?.title || 'Hydraulic oil leak detected in boom section'
   const description = issue?.description || 'Noticed hydraulic fluid pooling beneath the boom section during routine inspection. Appears to be coming from the main cylinder seal.'
@@ -90,92 +98,91 @@ export function IssueDetailView({ issue, projectId }: IssueDetailViewProps) {
           <div className="w-full h-40 bg-[#27272A] rounded-lg border border-[#3F3F46]"></div>
         </div>
 
-        {/* Work Order Section */}
-        <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-4">
-          <h3 className="text-base font-semibold text-[#FAFAFA] mb-4">Work Order</h3>
+        {/* Work Order Section — visible to managers */}
+        {showCreateWorkOrder && (
+          <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-4">
+            <h3 className="text-base font-semibold text-[#FAFAFA] mb-4">Work Order</h3>
 
-          {/* Status Stepper */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between relative mb-2">
-              <div className="absolute top-4 left-0 right-0 h-0.5 bg-[#3F3F46] z-0"></div>
-              <div
-                className="absolute top-4 left-0 h-0.5 bg-[#8B5CF6] z-0 transition-all"
-                style={{ width: `${(currentStatus / (statuses.length - 1)) * 100}%` }}
-              ></div>
+            {/* Status Stepper */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between relative mb-2">
+                <div className="absolute top-4 left-0 right-0 h-0.5 bg-[#3F3F46] z-0"></div>
+                <div
+                  className="absolute top-4 left-0 h-0.5 bg-[#8B5CF6] z-0 transition-all"
+                  style={{ width: `${(currentStatus / (statuses.length - 1)) * 100}%` }}
+                ></div>
 
-              {statuses.map((status, index) => (
-                <div key={index} className="flex flex-col items-center z-10 flex-1">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStatus(index)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-all ${
-                      index <= currentStatus
-                        ? 'bg-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30'
-                        : 'bg-[#27272A] border-2 border-[#3F3F46]'
-                    }`}
-                  >
-                    {index <= currentStatus && (
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </button>
-                  <span className={`text-xs text-center ${
-                    index <= currentStatus ? status.color : 'text-[#52525B]'
-                  }`}>
-                    {status.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Assignment */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-[#A1A1AA] mb-2">Assigned to</label>
-              <div className="flex items-center gap-3 p-3 bg-[#27272A] rounded-lg border border-[#3F3F46]">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] rounded-full flex items-center justify-center text-white font-medium">
-                  A
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-[#FAFAFA] font-medium">Amit Sharma</p>
-                  <p className="text-xs text-[#A1A1AA]">Senior Technician</p>
-                </div>
-                <button className="text-xs text-[#8B5CF6] hover:underline">Change</button>
+                {statuses.map((status, index) => (
+                  <div key={index} className="flex flex-col items-center z-10 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStatus(index)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-all ${
+                        index <= currentStatus
+                          ? 'bg-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30'
+                          : 'bg-[#27272A] border-2 border-[#3F3F46]'
+                      }`}
+                    >
+                      {index <= currentStatus && (
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                    <span className={`text-xs text-center ${
+                      index <= currentStatus ? status.color : 'text-[#52525B]'
+                    }`}>
+                      {status.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div>
-              <label htmlFor="completionDate" className="block text-sm text-[#A1A1AA] mb-2">Est. Completion</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
-                <input
-                  id="completionDate"
-                  type="date"
-                  value={formData.completionDate}
-                  onChange={(e) => setFormData({ ...formData, completionDate: e.target.value })}
-                  className="w-full h-12 pl-10 pr-4 rounded-lg border border-[#3F3F46] bg-[#27272A] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA]"
-                />
+            {/* Assignment */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-[#A1A1AA] mb-2">Assigned to</label>
+                <div className="flex items-center gap-3 p-3 bg-[#27272A] rounded-lg border border-[#3F3F46]">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] rounded-full flex items-center justify-center text-white font-medium">
+                    A
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-[#FAFAFA] font-medium">Amit Sharma</p>
+                    <p className="text-xs text-[#A1A1AA]">Senior Technician</p>
+                  </div>
+                  {showAssign && (
+                    <button className="text-xs text-[#8B5CF6] hover:underline">Change</button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="completionDate" className="block text-sm text-[#A1A1AA] mb-2">Est. Completion</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A1A1AA]" />
+                  <input
+                    id="completionDate"
+                    type="date"
+                    value={formData.completionDate}
+                    onChange={(e) => setFormData({ ...formData, completionDate: e.target.value })}
+                    className="w-full h-12 pl-10 pr-4 rounded-lg border border-[#3F3F46] bg-[#27272A] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA]"
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label htmlFor="repairNotes" className="block text-sm text-[#A1A1AA] mb-2">Repair Notes</label>
-              <textarea
-                id="repairNotes"
-                value={formData.repairNotes}
-                onChange={(e) => setFormData({ ...formData, repairNotes: e.target.value })}
-                placeholder="Add repair notes..."
-                className="w-full h-32 px-4 py-3 rounded-lg border border-[#3F3F46] bg-[#27272A] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA] placeholder:text-[#52525B] resize-none"
-              />
-            </div>
+            <button className="w-full h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium mt-4">
+              Update Status
+            </button>
           </div>
+        )}
 
-          <button className="w-full h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium mt-4">
-            Update Status
-          </button>
-        </div>
+        {/* Work Order Notes Timeline (replaces single textarea) */}
+        <WorkOrderNotesTimeline
+          workOrderId={workOrderId || 'demo'}
+          projectId={projectId}
+        />
 
         {/* Activity Timeline */}
         <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-4">

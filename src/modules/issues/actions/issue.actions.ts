@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from '@/modules/notifications/actions/notification.actions'
 
 export async function getIssues(projectId: string, filters?: { priority?: string; status?: string; search?: string }) {
   const supabase = await createClient()
@@ -76,6 +77,24 @@ export async function createIssue(projectId: string, formData: {
     action: 'issue_created',
     description: `reported "${data.title}"`,
   })
+
+  // Notify project owner about new issue
+  const { data: project } = await supabase
+    .from('projects')
+    .select('owner_id')
+    .eq('id', projectId)
+    .single()
+
+  if (project?.owner_id && project.owner_id !== user.id) {
+    await createNotification({
+      user_id: project.owner_id,
+      type: 'issue_created',
+      title: 'New Issue Reported',
+      body: `"${data.title}" was reported.`,
+      reference_type: 'issue',
+      reference_id: data.id,
+    })
+  }
 
   revalidatePath(`/projects/${projectId}/issues`)
   revalidatePath('/dashboard')

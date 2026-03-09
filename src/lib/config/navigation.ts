@@ -1,6 +1,13 @@
-import { LayoutDashboard, FolderKanban, User } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, User, ClipboardList } from 'lucide-react'
+import type { UserRole } from '@/shared/types/common.types'
 
-export const mainNavItems = [
+export type NavItem = {
+  label: string
+  href: string
+  icon: typeof LayoutDashboard
+}
+
+const managerNavItems: NavItem[] = [
   {
     label: 'Dashboard',
     href: '/dashboard',
@@ -16,7 +23,30 @@ export const mainNavItems = [
     href: '/profile',
     icon: User,
   },
-] as const
+]
+
+const technicianNavItems: NavItem[] = [
+  {
+    label: 'My Tasks',
+    href: '/dashboard',
+    icon: ClipboardList,
+  },
+  {
+    label: 'Projects',
+    href: '/projects',
+    icon: FolderKanban,
+  },
+  {
+    label: 'Profile',
+    href: '/profile',
+    icon: User,
+  },
+]
+
+export function getNavItems(role: UserRole | null): NavItem[] {
+  if (role === 'technician') return technicianNavItems
+  return managerNavItems
+}
 
 export const projectTabs = [
   { label: 'Machines', value: 'machines' },

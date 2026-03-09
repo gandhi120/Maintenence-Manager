@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Search, Filter, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/shared/providers/auth-provider'
+import { canAddMachine } from '@/lib/utils/permissions'
 
 const demoMachines = [
   {
@@ -50,6 +52,8 @@ interface MachinesGridProps {
 
 export function MachinesGrid({ machines, projectId }: MachinesGridProps) {
   const [search, setSearch] = useState('')
+  const { role } = useAuth()
+  const showAdd = canAddMachine(role)
 
   const getStatusColor = (status: string) => {
     if (status === 'active') return 'bg-[#10B981]'
@@ -88,13 +92,15 @@ export function MachinesGrid({ machines, projectId }: MachinesGridProps) {
         <button className="h-10 px-3 bg-[#18181B] border border-[#3F3F46] rounded-lg flex items-center gap-2 hover:bg-[#27272A] transition-colors">
           <Filter className="w-4 h-4 text-[#A1A1AA]" />
         </button>
-        <Link
-          href={`/projects/${projectId}/machines/new`}
-          className="h-10 px-4 bg-[#8B5CF6] text-white rounded-lg flex items-center gap-2 hover:bg-[#7C3AED] transition-colors font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Add</span>
-        </Link>
+        {showAdd && (
+          <Link
+            href={`/projects/${projectId}/machines/new`}
+            className="h-10 px-4 bg-[#8B5CF6] text-white rounded-lg flex items-center gap-2 hover:bg-[#7C3AED] transition-colors font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add</span>
+          </Link>
+        )}
       </div>
 
       {/* Machines Grid */}

@@ -1,8 +1,14 @@
 import { createBrowserClient } from '@supabase/ssr'
 
+function getSupabaseUrl() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (url && url.startsWith('http')) return url
+  return 'http://localhost:54321'
+}
+
 export function createClient() {
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321',
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
   )
 }

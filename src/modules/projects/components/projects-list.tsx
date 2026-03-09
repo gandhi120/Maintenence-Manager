@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Search, Plus, MapPin, Settings, AlertCircle, FileText } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/shared/providers/auth-provider'
+import { canCreateProject } from '@/lib/utils/permissions'
 
 const demoProjects = [
   {
@@ -59,6 +61,9 @@ interface ProjectsListProps {
 
 export function ProjectsList({ projects }: ProjectsListProps) {
   const [search, setSearch] = useState('')
+  const { role } = useAuth()
+  const showCreate = canCreateProject(role)
+
   const displayProjects = projects.length > 0 ? projects.map(p => ({
     ...p,
     location: p.location || 'Unknown',
@@ -89,13 +94,15 @@ export function ProjectsList({ projects }: ProjectsListProps) {
               className="w-full h-10 pl-10 pr-4 rounded-lg border border-[#3F3F46] bg-[#18181B] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA] placeholder:text-[#52525B]"
             />
           </div>
-          <Link
-            href="/projects/new"
-            className="h-10 px-4 bg-[#8B5CF6] text-white rounded-lg flex items-center gap-2 hover:bg-[#7C3AED] transition-colors whitespace-nowrap font-medium"
-          >
-            <Plus className="w-5 h-5" />
-            New
-          </Link>
+          {showCreate && (
+            <Link
+              href="/projects/new"
+              className="h-10 px-4 bg-[#8B5CF6] text-white rounded-lg flex items-center gap-2 hover:bg-[#7C3AED] transition-colors whitespace-nowrap font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              New
+            </Link>
+          )}
         </div>
       </div>
 

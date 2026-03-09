@@ -2,7 +2,16 @@
 
 import { Plus } from 'lucide-react'
 
-const workOrders = {
+interface WOItem {
+  id: number
+  title: string
+  machine: string
+  priority: string
+  due: string
+  assigned?: string
+}
+
+const workOrders: Record<string, WOItem[]> = {
   open: [
     { id: 1, title: 'Hydraulic oil leak', machine: 'Tower Crane', priority: 'high', due: 'Mar 12' },
   ],
@@ -61,10 +70,10 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
                   </div>
                   <p className="text-xs text-[#A1A1AA] mb-2">{order.machine}</p>
                   <div className="flex items-center justify-between">
-                    {'assigned' in order && order.assigned && (
+                    {order.assigned && (
                       <div className="flex items-center gap-1">
                         <div className="w-5 h-5 bg-[#8B5CF6] rounded-full flex items-center justify-center text-[10px] text-white font-medium">
-                          {(order.assigned as string).charAt(0)}
+                          {order.assigned.charAt(0)}
                         </div>
                         <span className="text-xs text-[#A1A1AA]">{order.assigned}</span>
                       </div>

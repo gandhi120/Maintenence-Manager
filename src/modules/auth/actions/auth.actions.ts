@@ -31,22 +31,42 @@ export async function verifyOTP(phone: string, token: string) {
     return { error: error.message }
   }
 
+  let role: string = 'manager'
+
   // Upsert user profile
   if (data.user) {
-    const { error: profileError } = await supabase
+    const { data: existingUser } = await supabase
       .from('users')
-      .upsert({
-        id: data.user.id,
-        mobile_number: phone,
-        name: data.user.user_metadata?.name || '',
-      }, { onConflict: 'id' })
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
 
-    if (profileError) {
-      console.error('Profile upsert error:', profileError)
+    if (existingUser) {
+      role = existingUser.role
+      // Update last_active_at
+      await supabase
+        .from('users')
+        .update({ last_active_at: new Date().toISOString() })
+        .eq('id', data.user.id)
+    } else {
+      // New user - upsert with default role
+      const { error: profileError } = await supabase
+        .from('users')
+        .upsert({
+          id: data.user.id,
+          mobile_number: phone,
+          name: data.user.user_metadata?.name || '',
+          role: 'manager',
+          last_active_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+
+      if (profileError) {
+        console.error('Profile upsert error:', profileError)
+      }
     }
   }
 
-  return { success: true }
+  return { success: true, role }
 }
 
 export async function logout() {

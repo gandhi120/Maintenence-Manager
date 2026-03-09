@@ -32,6 +32,7 @@ export function OtpForm() {
 
   const handleVerify = () => {
     if (otp.every((digit) => digit !== '')) {
+      // Both roles go to /dashboard; the page handles branching by role
       router.push('/dashboard')
     }
   }

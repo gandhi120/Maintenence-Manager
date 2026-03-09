@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Calendar, AlertCircle, Wrench, Edit } from 'lucide-react'
+import { useAuth } from '@/shared/providers/auth-provider'
+import { canEditMachine, canLogMaintenance } from '@/lib/utils/permissions'
 
 const demoMaintenanceHistory = [
   { date: '10 Mar 2025', technician: 'Amit Sharma', type: 'Routine Checkup', notes: 'All systems normal. Hydraulic fluid level checked and topped off.' },
@@ -17,6 +19,10 @@ interface MachineDetailViewProps {
 
 export function MachineDetailView({ machine, projectId }: MachineDetailViewProps) {
   const router = useRouter()
+  const { role } = useAuth()
+  const showEdit = canEditMachine(role)
+  const showLogMaintenance = canLogMaintenance(role)
+
   const name = machine?.name || 'Tower Crane'
   const type = machine?.type || 'Crane'
   const status = machine?.status === 'active' ? 'Active' : machine?.status === 'under_repair' ? 'Under Repair' : 'Inactive'
@@ -143,20 +149,24 @@ export function MachineDetailView({ machine, projectId }: MachineDetailViewProps
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${showLogMaintenance ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <button onClick={() => router.push(`/projects/${projectId}/issues/new`)} className="h-12 bg-[#F43F5E] text-white rounded-lg hover:bg-[#E11D48] transition-colors font-medium flex items-center justify-center gap-2 shadow-lg shadow-[#F43F5E]/20">
               <AlertCircle className="w-4 h-4" />
               Report Issue
             </button>
-            <button className="h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium flex items-center justify-center gap-2">
-              <Wrench className="w-4 h-4" />
-              Log Maintenance
-            </button>
+            {showLogMaintenance && (
+              <button className="h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium flex items-center justify-center gap-2">
+                <Wrench className="w-4 h-4" />
+                Log Maintenance
+              </button>
+            )}
           </div>
-          <button className="w-full h-12 bg-transparent text-[#A1A1AA] rounded-lg border border-[#3F3F46] hover:bg-[#27272A] transition-colors font-medium flex items-center justify-center gap-2">
-            <Edit className="w-4 h-4" />
-            Edit Machine
-          </button>
+          {showEdit && (
+            <button className="w-full h-12 bg-transparent text-[#A1A1AA] rounded-lg border border-[#3F3F46] hover:bg-[#27272A] transition-colors font-medium flex items-center justify-center gap-2">
+              <Edit className="w-4 h-4" />
+              Edit Machine
+            </button>
+          )}
         </div>
       </div>
     </div>

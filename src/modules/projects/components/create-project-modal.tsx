@@ -14,7 +14,8 @@ const colors = [
   { value: '#06B6D4', label: 'Cyan' },
 ]
 
-export function CreateProjectModal({ onClose }: { onClose: () => void }) {
+export function CreateProjectModal({ open, onOpenChange, onClose: onCloseProp }: { open?: boolean; onOpenChange?: (open: boolean) => void; onClose?: () => void }) {
+  const onClose = onCloseProp || (() => onOpenChange?.(false))
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: '',
@@ -22,6 +23,8 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
     description: '',
     color: '#8B5CF6',
   })
+
+  if (open === false) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

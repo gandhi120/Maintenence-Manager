@@ -3,7 +3,7 @@ export type IssueStatus = 'open' | 'assigned' | 'in_progress' | 'resolved'
 export type WorkOrderStatus = 'open' | 'assigned' | 'in_progress' | 'completed'
 export type MachineStatus = 'active' | 'inactive' | 'under_repair'
 export type MaintenanceType = 'routine' | 'oil_change' | 'repair' | 'inspection' | 'custom'
-export type UserRole = 'owner' | 'manager' | 'technician'
+export type UserRole = 'manager' | 'technician'
 
 export interface Project {
   id: string
@@ -52,6 +52,7 @@ export interface WorkOrder {
   issue_id: string
   project_id: string
   assigned_to: string | null
+  assigned_by?: string | null
   status: WorkOrderStatus
   estimated_completion: string | null
   actual_completion: string | null
@@ -59,6 +60,25 @@ export interface WorkOrder {
   created_at: string
   issue?: Issue
   assignee?: { id: string; name: string; avatar_url: string | null }
+}
+
+export interface WorkOrderNote {
+  id: string
+  work_order_id: string
+  author_id: string
+  content: string
+  created_at: string
+  author?: { id: string; name: string; avatar_url: string | null }
+}
+
+export interface UserProfile {
+  id: string
+  name: string
+  mobile_number: string | null
+  avatar_url: string | null
+  role: UserRole
+  last_active_at: string | null
+  created_at: string
 }
 
 export interface MaintenanceLog {
@@ -97,12 +117,12 @@ export interface ActivityLog {
 
 export interface Notification {
   id: string
+  user_id: string
   type: string
   title: string
-  description: string
-  read: boolean
+  body: string
+  reference_type: string | null
+  reference_id: string | null
+  is_read: boolean
   created_at: string
-  project_id?: string
-  issue_id?: string
-  work_order_id?: string
 }

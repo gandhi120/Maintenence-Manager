@@ -26,7 +26,7 @@ function getPriorityDot(priority: string) {
   return 'bg-[#10B981]'
 }
 
-export function KanbanBoard({ projectId, workOrders }: KanbanBoardProps) {
+export function KanbanBoard({ projectId: _projectId, workOrders }: KanbanBoardProps) {
   const open = workOrders.filter(wo => wo.status === 'open')
   const assigned = workOrders.filter(wo => wo.status === 'assigned')
   const inProgress = workOrders.filter(wo => wo.status === 'in_progress')

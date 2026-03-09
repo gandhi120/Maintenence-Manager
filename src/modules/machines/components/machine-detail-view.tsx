@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, Wrench, Edit } from 'lucide-react'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canEditMachine, canLogMaintenance } from '@/lib/utils/permissions'
 import { LogMaintenanceModal } from './log-maintenance-modal'
+import { EditMachineModal } from './edit-machine-modal'
 
 interface MachineDetailViewProps {
   machine: {
@@ -63,6 +64,7 @@ export function MachineDetailView({ machine, projectId, maintenanceLog }: Machin
   const showEdit = canEditMachine(role)
   const showLogMaintenance = canLogMaintenance(role)
   const [logMaintenanceOpen, setLogMaintenanceOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   if (!machine) {
     return (
@@ -221,12 +223,20 @@ export function MachineDetailView({ machine, projectId, maintenanceLog }: Machin
           </div>
 
           {/* Action Buttons */}
-          {showLogMaintenance && (
-            <button onClick={() => setLogMaintenanceOpen(true)} className="w-full h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium flex items-center justify-center gap-2">
-              <Wrench className="w-4 h-4" />
-              Log Maintenance
-            </button>
-          )}
+          <div className="flex gap-3">
+            {showEdit && (
+              <button onClick={() => setEditOpen(true)} className="flex-1 h-12 bg-transparent text-[#A1A1AA] rounded-lg border border-[#3F3F46] hover:bg-[#27272A] transition-colors font-medium flex items-center justify-center gap-2">
+                <Edit className="w-4 h-4" />
+                Edit Machine
+              </button>
+            )}
+            {showLogMaintenance && (
+              <button onClick={() => setLogMaintenanceOpen(true)} className="flex-1 h-12 bg-[#8B5CF6] text-white rounded-lg hover:bg-[#7C3AED] transition-colors font-medium flex items-center justify-center gap-2">
+                <Wrench className="w-4 h-4" />
+                Log Maintenance
+              </button>
+            )}
+          </div>
 
           {showLogMaintenance && (
             <LogMaintenanceModal
@@ -236,11 +246,14 @@ export function MachineDetailView({ machine, projectId, maintenanceLog }: Machin
               projectId={projectId}
             />
           )}
+
           {showEdit && (
-            <button className="w-full h-12 bg-transparent text-[#A1A1AA] rounded-lg border border-[#3F3F46] hover:bg-[#27272A] transition-colors font-medium flex items-center justify-center gap-2">
-              <Edit className="w-4 h-4" />
-              Edit Machine
-            </button>
+            <EditMachineModal
+              open={editOpen}
+              onOpenChange={setEditOpen}
+              machine={machine}
+              projectId={projectId}
+            />
           )}
         </div>
       </div>

@@ -146,45 +146,12 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
         {/* My Team Section — Manager only */}
         {isManager && (
           <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[#3F3F46]">
+            <div className="p-4 border-b border-[#3F3F46]">
               <h3 className="text-sm font-semibold text-[#FAFAFA]">My Team</h3>
-              <button
-                onClick={() => setShowAddTechnician(true)}
-                className="text-xs text-[#8B5CF6] hover:underline"
-              >
-                + Add Technician
-              </button>
             </div>
-            {team.map((member, index) => (
-              <div
-                key={index}
-                className={`flex items-center gap-3 p-4 ${
-                  index < team.length - 1 ? 'border-b border-[#3F3F46]' : ''
-                }`}
-              >
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {member.name ? member.name.split(' ').map(n => n[0]).join('') : <User className="w-5 h-5 text-white" />}
-                  </div>
-                  <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#18181B] ${
-                    member.status === 'online' ? 'bg-[#10B981]' : 'bg-[#71717A]'
-                  }`}></div>
-                </div>
-                <div className="flex-1">
-                  {member.name ? (
-                    <>
-                      <p className="text-sm font-medium text-[#FAFAFA]">{member.name}</p>
-                      <p className="text-xs text-[#A1A1AA]">{member.phone}</p>
-                    </>
-                  ) : (
-                    <p className="text-sm font-medium text-[#FAFAFA]">{member.phone}</p>
-                  )}
-                </div>
-                <span className="text-xs bg-[#27272A] text-[#A1A1AA] px-2 py-1 rounded-md">
-                  {member.role}
-                </span>
-              </div>
-            ))}
+            <div className="flex flex-col items-center justify-center py-8">
+              <span className="text-xs text-[#A1A1AA] bg-[#27272A] px-2 py-1 rounded-md">Coming Soon</span>
+            </div>
           </div>
         )}
 

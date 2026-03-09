@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Filter, Plus } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canAddMachine } from '@/lib/utils/permissions'
@@ -50,9 +50,6 @@ export function MachinesGrid({ machines, projectId }: MachinesGridProps) {
             className="w-full h-10 pl-9 pr-4 rounded-lg border border-[#3F3F46] bg-[#18181B] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA] text-sm placeholder:text-[#52525B]"
           />
         </div>
-        <button className="h-10 px-3 bg-[#18181B] border border-[#3F3F46] rounded-lg flex items-center gap-2 hover:bg-[#27272A] transition-colors">
-          <Filter className="w-4 h-4 text-[#A1A1AA]" />
-        </button>
         {showAdd && (
           <Link
             href={`/projects/${projectId}/machines/new`}

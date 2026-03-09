@@ -2,29 +2,22 @@
 
 import { Plus } from 'lucide-react'
 
-interface WOItem {
-  id: number
-  title: string
-  machine: string
-  priority: string
-  due: string
-  assigned?: string
+interface WorkOrderItem {
+  id: string
+  status: string
+  issue?: {
+    id: string
+    title: string
+    priority: string
+    machine?: { id: string; name: string } | null
+  } | null
+  assignee?: { id: string; name: string; avatar_url: string | null } | null
+  estimated_completion: string | null
 }
 
-const workOrders: Record<string, WOItem[]> = {
-  open: [
-    { id: 1, title: 'Hydraulic oil leak', machine: 'Tower Crane', priority: 'high', due: 'Mar 12' },
-  ],
-  assigned: [
-    { id: 2, title: 'Belt replacement', machine: 'Generator', assigned: 'Amit', priority: 'medium', due: 'Mar 14' },
-  ],
-  inProgress: [
-    { id: 3, title: 'Engine inspection', machine: 'Excavator', assigned: 'Priya', priority: 'low', due: 'Mar 15' },
-    { id: 4, title: 'Cooling system repair', machine: 'Generator', assigned: 'Amit', priority: 'high', due: 'Mar 13' },
-  ],
-  completed: [
-    { id: 5, title: 'Overheating fix', machine: 'Compressor', assigned: 'Amit', priority: 'medium', due: 'Mar 8' },
-  ],
+interface KanbanBoardProps {
+  projectId: string
+  workOrders: WorkOrderItem[]
 }
 
 function getPriorityDot(priority: string) {
@@ -33,14 +26,28 @@ function getPriorityDot(priority: string) {
   return 'bg-[#10B981]'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function KanbanBoard({ projectId }: { projectId: string }) {
+export function KanbanBoard({ projectId, workOrders }: KanbanBoardProps) {
+  const open = workOrders.filter(wo => wo.status === 'open')
+  const assigned = workOrders.filter(wo => wo.status === 'assigned')
+  const inProgress = workOrders.filter(wo => wo.status === 'in_progress')
+  const completed = workOrders.filter(wo => wo.status === 'completed')
+
   const columns = [
-    { title: 'Open', items: workOrders.open, color: 'text-[#A1A1AA]' },
-    { title: 'Assigned', items: workOrders.assigned, color: 'text-[#38BDF8]' },
-    { title: 'In Progress', items: workOrders.inProgress, color: 'text-[#8B5CF6]' },
-    { title: 'Completed', items: workOrders.completed, color: 'text-[#10B981]' },
+    { title: 'Open', items: open, color: 'text-[#A1A1AA]' },
+    { title: 'Assigned', items: assigned, color: 'text-[#38BDF8]' },
+    { title: 'In Progress', items: inProgress, color: 'text-[#8B5CF6]' },
+    { title: 'Completed', items: completed, color: 'text-[#10B981]' },
   ]
+
+  if (workOrders.length === 0) {
+    return (
+      <div className="p-4">
+        <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-8 text-center">
+          <p className="text-sm text-[#A1A1AA]">Work orders are not found</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4">
@@ -65,20 +72,22 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
                   className="p-3 bg-[#18181B] border border-[#3F3F46] rounded-lg hover:border-[#8B5CF6]/50 transition-all cursor-pointer"
                 >
                   <div className="flex items-start gap-2 mb-2">
-                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${getPriorityDot(order.priority)}`}></div>
-                    <h4 className="text-sm font-medium text-[#FAFAFA] flex-1">{order.title}</h4>
+                    <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${getPriorityDot(order.issue?.priority || 'medium')}`}></div>
+                    <h4 className="text-sm font-medium text-[#FAFAFA] flex-1">{order.issue?.title || 'Work Order'}</h4>
                   </div>
-                  <p className="text-xs text-[#A1A1AA] mb-2">{order.machine}</p>
+                  <p className="text-xs text-[#A1A1AA] mb-2">{order.issue?.machine?.name || ''}</p>
                   <div className="flex items-center justify-between">
-                    {order.assigned && (
+                    {order.assignee && (
                       <div className="flex items-center gap-1">
                         <div className="w-5 h-5 bg-[#8B5CF6] rounded-full flex items-center justify-center text-[10px] text-white font-medium">
-                          {order.assigned.charAt(0)}
+                          {order.assignee.name.charAt(0)}
                         </div>
-                        <span className="text-xs text-[#A1A1AA]">{order.assigned}</span>
+                        <span className="text-xs text-[#A1A1AA]">{order.assignee.name}</span>
                       </div>
                     )}
-                    <span className="text-xs text-[#A1A1AA]">{order.due}</span>
+                    {order.estimated_completion && (
+                      <span className="text-xs text-[#A1A1AA]">{order.estimated_completion}</span>
+                    )}
                   </div>
                 </div>
               ))}

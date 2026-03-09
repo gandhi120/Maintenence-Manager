@@ -17,14 +17,19 @@ export async function getProfile() {
   return data
 }
 
-export async function updateProfile(formData: { name: string; avatar_url?: string }) {
+export async function updateProfile(formData: { name?: string; avatar_url?: string }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  const updateData = Object.fromEntries(
+    Object.entries(formData).filter(([, v]) => v !== undefined)
+  )
+  if (Object.keys(updateData).length === 0) return { success: true }
+
   const { error } = await supabase
     .from('users')
-    .update(formData)
+    .update(updateData)
     .eq('id', user.id)
 
   if (error) return { error: error.message }

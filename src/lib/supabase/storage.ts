@@ -1,12 +1,12 @@
 import { createClient } from './client'
 
-export async function uploadImage(bucket: string, path: string, file: File) {
+export async function uploadImage(bucket: string, path: string, file: File, options?: { upsert?: boolean }) {
   const supabase = createClient()
   const { data, error } = await supabase.storage
     .from(bucket)
     .upload(path, file, {
       cacheControl: '3600',
-      upsert: false,
+      upsert: options?.upsert ?? false,
     })
 
   if (error) throw error

@@ -74,11 +74,6 @@ export async function createProject(formData: {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
-  console.log('createProject: user.id =', user.id)
-
-  // Debug: check what auth.uid() returns in the DB context
-  const { data: uidCheck } = await supabase.rpc('get_uid_debug').maybeSingle()
-  console.log('createProject: auth.uid() in DB =', uidCheck)
 
   const { data, error } = await supabase
     .from('projects')
@@ -89,10 +84,7 @@ export async function createProject(formData: {
     .select()
     .single()
 
-  if (error) {
-    console.log('createProject error:', error.message, error.code, error.details)
-    return { error: error.message }
-  }
+  if (error) return { error: error.message }
 
   // Log activity
   await supabase.from('activity_log').insert({

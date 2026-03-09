@@ -11,9 +11,9 @@ export function ProjectTabs({ projectId }: ProjectTabsProps) {
   const pathname = usePathname()
 
   const tabs = [
-    { id: 'machines', label: 'Machines', href: `/projects/${projectId}/machines` },
-    { id: 'issues', label: 'Issues', href: `/projects/${projectId}/issues`, badge: '5' },
-    { id: 'work-orders', label: 'Work Orders', href: `/projects/${projectId}/work-orders`, badge: '2' },
+    { id: 'machines', label: 'Machines', href: `/projects/${projectId}/machines`, upcoming: false },
+    { id: 'issues', label: 'Issues', href: `/projects/${projectId}/issues`, upcoming: true },
+    { id: 'work-orders', label: 'Work Orders', href: `/projects/${projectId}/work-orders`, upcoming: true },
   ]
 
   return (
@@ -29,11 +29,9 @@ export function ProjectTabs({ projectId }: ProjectTabsProps) {
             }`}
           >
             {tab.label}
-            {tab.badge && (
-              <span className={`${
-                isActive ? 'bg-[#8B5CF6]' : 'bg-[#3F3F46]'
-              } text-white text-xs px-1.5 py-0.5 rounded-full min-w-5 text-center`}>
-                {tab.badge}
+            {tab.upcoming && (
+              <span className="bg-[#F59E0B]/20 text-[#F59E0B] text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                Soon
               </span>
             )}
             {isActive && (

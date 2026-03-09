@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function addTechnician(phone: string, name: string, projectIds: string[]) {
@@ -8,8 +9,11 @@ export async function addTechnician(phone: string, name: string, projectIds: str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  // Use admin client for cross-user operations (RLS only allows own-row access on users table)
+  const admin = createAdminClient()
+
   // Check if user with this phone already exists
-  const { data: existingUser } = await supabase
+  const { data: existingUser } = await admin
     .from('users')
     .select('id')
     .eq('mobile_number', phone)
@@ -20,13 +24,13 @@ export async function addTechnician(phone: string, name: string, projectIds: str
   if (existingUser) {
     technicianId = existingUser.id
     // Update role to technician if not already
-    await supabase
+    await admin
       .from('users')
       .update({ role: 'technician', name })
       .eq('id', technicianId)
   } else {
     // Create new user with a generated UUID
-    const { data: newUser, error: insertError } = await supabase
+    const { data: newUser, error: insertError } = await admin
       .from('users')
       .insert({
         mobile_number: phone,
@@ -40,9 +44,9 @@ export async function addTechnician(phone: string, name: string, projectIds: str
     technicianId = newUser.id
   }
 
-  // Add to selected projects as team member
+  // Add to selected projects as team member (admin bypasses RLS)
   for (const projectId of projectIds) {
-    await supabase
+    await admin
       .from('team_members')
       .upsert({
         project_id: projectId,

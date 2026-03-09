@@ -21,12 +21,6 @@ interface TechnicianWorkOrdersListProps {
   projectId: string
 }
 
-const demoWorkOrders: WorkOrderItem[] = [
-  { id: '1', status: 'in_progress', estimated_completion: '2026-03-12', project_id: '1', issue: { id: '1', title: 'Hydraulic oil leak in boom section', priority: 'high', machine: { id: '1', name: 'Tower Crane' } } },
-  { id: '2', status: 'assigned', estimated_completion: '2026-03-14', project_id: '1', issue: { id: '2', title: 'Belt replacement needed', priority: 'medium', machine: { id: '3', name: 'Generator Unit 3' } } },
-  { id: '3', status: 'completed', estimated_completion: '2026-03-10', project_id: '1', issue: { id: '5', title: 'Overheating fix', priority: 'medium', machine: { id: '4', name: 'Air Compressor' } } },
-]
-
 function getPriorityDot(priority: string) {
   if (priority === 'high') return 'bg-[#F43F5E]'
   if (priority === 'medium') return 'bg-[#F59E0B]'
@@ -50,7 +44,7 @@ function daysUntil(dateStr: string | null): string {
 }
 
 export function TechnicianWorkOrdersList({ workOrders, projectId }: TechnicianWorkOrdersListProps) {
-  const items = workOrders.length > 0 ? workOrders : demoWorkOrders
+  const items = workOrders
 
   return (
     <div className="p-4">

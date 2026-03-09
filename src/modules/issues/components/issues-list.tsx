@@ -4,53 +4,6 @@ import { useState } from 'react'
 import { Search, Plus, User } from 'lucide-react'
 import Link from 'next/link'
 
-const demoIssues = [
-  {
-    id: '1',
-    title: 'Hydraulic oil leak detected',
-    machine: 'Tower Crane',
-    priority: 'High',
-    priorityColor: 'border-[#F43F5E]',
-    status: 'Open',
-    statusColor: 'text-[#A1A1AA]',
-    assigned: null,
-    time: '2h ago',
-  },
-  {
-    id: '2',
-    title: 'Belt worn out in generator',
-    machine: 'Generator Unit 3',
-    priority: 'Medium',
-    priorityColor: 'border-[#F59E0B]',
-    status: 'Assigned',
-    statusColor: 'text-[#38BDF8]',
-    assigned: 'Amit Sharma',
-    time: '5h ago',
-  },
-  {
-    id: '3',
-    title: 'Unusual engine noise',
-    machine: 'Excavator B-12',
-    priority: 'Low',
-    priorityColor: 'border-[#10B981]',
-    status: 'In Progress',
-    statusColor: 'text-[#8B5CF6]',
-    assigned: 'Priya Patel',
-    time: '1d ago',
-  },
-  {
-    id: '4',
-    title: 'Overheating issue',
-    machine: 'Air Compressor',
-    priority: 'High',
-    priorityColor: 'border-[#F43F5E]',
-    status: 'Resolved',
-    statusColor: 'text-[#10B981]',
-    assigned: 'Amit Sharma',
-    time: '2d ago',
-  },
-]
-
 interface IssuesListProps {
   issues: Array<{ id: string; title: string; priority: string; status: string; machine_id: string }>
   projectId: string
@@ -58,7 +11,7 @@ interface IssuesListProps {
 
 export function IssuesList({ issues, projectId }: IssuesListProps) {
   const [search, setSearch] = useState('')
-  const displayIssues = issues.length > 0 ? issues.map(i => ({
+  const displayIssues = issues.map(i => ({
     id: i.id,
     title: i.title,
     machine: 'Machine',
@@ -68,7 +21,7 @@ export function IssuesList({ issues, projectId }: IssuesListProps) {
     statusColor: i.status === 'open' ? 'text-[#A1A1AA]' : i.status === 'in_progress' ? 'text-[#8B5CF6]' : 'text-[#10B981]',
     assigned: null as string | null,
     time: 'Recently',
-  })) : demoIssues
+  }))
 
   const filtered = displayIssues.filter(i =>
     i.title.toLowerCase().includes(search.toLowerCase())
@@ -98,6 +51,11 @@ export function IssuesList({ issues, projectId }: IssuesListProps) {
       </div>
 
       {/* Issues List */}
+      {filtered.length === 0 ? (
+        <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-8 text-center">
+          <p className="text-sm text-[#A1A1AA]">Issues are not found</p>
+        </div>
+      ) : (
       <div className="space-y-3">
         {filtered.map((issue) => (
           <Link
@@ -126,6 +84,7 @@ export function IssuesList({ issues, projectId }: IssuesListProps) {
           </Link>
         ))}
       </div>
+      )}
     </div>
   )
 }

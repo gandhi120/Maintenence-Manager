@@ -1,27 +1,18 @@
-import { KanbanBoard } from '@/modules/work-orders/components/kanban-board'
-import { TechnicianWorkOrdersList } from '@/modules/work-orders/components/technician-work-orders-list'
-import { getCurrentUser } from '@/modules/auth/actions/auth.actions'
-import { getTechnicianWorkOrders } from '@/modules/work-orders/actions/work-order.actions'
+import { Construction } from 'lucide-react'
 
-export default async function WorkOrdersPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = await params
-
-  let currentUser: { id: string; role: string } | null = null
-  try {
-    currentUser = await getCurrentUser()
-  } catch {
-    // Supabase not configured
-  }
-
-  if (currentUser?.role === 'technician') {
-    let workOrders: never[] = []
-    try {
-      workOrders = await getTechnicianWorkOrders(projectId, currentUser.id) as never[]
-    } catch {
-      // Supabase not configured
-    }
-    return <TechnicianWorkOrdersList workOrders={workOrders} projectId={projectId} />
-  }
-
-  return <KanbanBoard projectId={projectId} />
+export default async function WorkOrdersPage() {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 pt-20">
+      <div className="w-16 h-16 rounded-full bg-[#F59E0B]/10 flex items-center justify-center mb-4">
+        <Construction className="w-8 h-8 text-[#F59E0B]" />
+      </div>
+      <h2 className="text-lg font-semibold text-[#FAFAFA] mb-2">Work Orders - Coming Soon</h2>
+      <p className="text-sm text-[#A1A1AA] text-center max-w-xs">
+        Create and manage work orders, assign technicians, and track repair progress with a Kanban board.
+      </p>
+      <span className="mt-4 text-xs bg-[#F59E0B]/20 text-[#F59E0B] px-3 py-1 rounded-full font-medium">
+        Upcoming Feature
+      </span>
+    </div>
+  )
 }

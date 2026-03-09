@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Phone, Bell, Moon, Info, LogOut, Camera, ChevronRight } from 'lucide-react'
+import { User, Phone, Bell, Moon, Info, LogOut, Camera, ChevronRight, Loader2 } from 'lucide-react'
 import { useAuth } from '@/shared/providers/auth-provider'
+import { useAvatarUpload } from '../hooks/use-avatar-upload'
 import { AddTechnicianModal } from './add-technician-modal'
 import { EditNameModal } from './edit-name-modal'
 import { EditPhoneModal } from './edit-phone-modal'
@@ -23,6 +24,7 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
   const [showAddTechnician, setShowAddTechnician] = useState(false)
   const [showEditName, setShowEditName] = useState(false)
   const [showEditPhone, setShowEditPhone] = useState(false)
+  const { uploading, fileInputRef, triggerFilePicker, handleFileChange } = useAvatarUpload(profile?.id || '')
   const name = profile?.name || ''
   const phone = profile?.mobile_number || ''
   const displayRole = role === 'technician' ? 'Technician' : 'Manager'
@@ -55,12 +57,32 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
         <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-6">
           <div className="flex flex-col items-center mb-6">
             <div className="relative mb-4">
-              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center`}>
-                <User className="w-10 h-10 text-white" />
+              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center overflow-hidden`}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10 text-white" />
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                  </div>
+                )}
               </div>
-              <button className={`absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#18181B] ${role === 'technician' ? 'bg-[#38BDF8]' : 'bg-[#8B5CF6]'}`}>
+              <button
+                onClick={triggerFilePicker}
+                disabled={uploading}
+                className={`absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#18181B] ${role === 'technician' ? 'bg-[#38BDF8]' : 'bg-[#8B5CF6]'}`}
+              >
                 <Camera className="w-3 h-3 text-white" />
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
             {name ? (
               <>
@@ -103,27 +125,21 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
               <Moon className="w-5 h-5 text-[#A1A1AA]" />
               <span className="text-[#FAFAFA]">Dark Mode</span>
             </div>
-            <div className={`relative w-11 h-6 rounded-full cursor-pointer ${role === 'technician' ? 'bg-[#38BDF8]' : 'bg-[#8B5CF6]'}`}>
-              <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
+            <span className="text-xs text-[#A1A1AA] bg-[#27272A] px-2 py-1 rounded-md">Coming Soon</span>
           </div>
           <div className="flex items-center justify-between p-4 border-b border-[#3F3F46]">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-[#A1A1AA]" />
               <span className="text-[#FAFAFA]">Push Notifications</span>
             </div>
-            <div className={`relative w-11 h-6 rounded-full cursor-pointer ${role === 'technician' ? 'bg-[#38BDF8]' : 'bg-[#8B5CF6]'}`}>
-              <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
+            <span className="text-xs text-[#A1A1AA] bg-[#27272A] px-2 py-1 rounded-md">Coming Soon</span>
           </div>
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-[#A1A1AA]" />
               <span className="text-[#FAFAFA]">Maintenance Reminders</span>
             </div>
-            <div className={`relative w-11 h-6 rounded-full cursor-pointer ${role === 'technician' ? 'bg-[#38BDF8]' : 'bg-[#8B5CF6]'}`}>
-              <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
+            <span className="text-xs text-[#A1A1AA] bg-[#27272A] px-2 py-1 rounded-md">Coming Soon</span>
           </div>
         </div>
 
@@ -183,16 +199,6 @@ export function ProfileView({ profile, teamMembers }: ProfileViewProps) {
               <span className="text-[#FAFAFA]">App Version</span>
               <p className="text-xs text-[#A1A1AA]">2.0.0</p>
             </div>
-          </button>
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-[#27272A] transition-colors border-b border-[#3F3F46]">
-            <Phone className="w-5 h-5 text-[#A1A1AA]" />
-            <span className="flex-1 text-left text-[#FAFAFA]">Contact Support</span>
-            <ChevronRight className="w-4 h-4 text-[#A1A1AA]" />
-          </button>
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-[#27272A] transition-colors">
-            <Info className="w-5 h-5 text-[#A1A1AA]" />
-            <span className="flex-1 text-left text-[#FAFAFA]">Terms & Privacy</span>
-            <ChevronRight className="w-4 h-4 text-[#A1A1AA]" />
           </button>
         </div>
 

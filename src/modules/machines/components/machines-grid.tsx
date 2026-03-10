@@ -87,17 +87,17 @@ export function MachinesGrid({ machines, projectId }: MachinesGridProps) {
                   </div>
                 )}
               </div>
-              <div className="p-3">
-                <h3 className="text-sm font-semibold text-[#FAFAFA] mb-1">{machine.name}</h3>
-                <p className="text-xs px-2 py-0.5 bg-[#27272A] text-[#A1A1AA] rounded-md inline-block mb-2">
+              <div className="p-2 sm:p-3">
+                <h3 className="text-xs sm:text-sm font-semibold text-[#FAFAFA] mb-1 truncate">{machine.name}</h3>
+                <p className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-[#27272A] text-[#A1A1AA] rounded-md inline-block mb-2">
                   {machine.type}
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <div className="flex items-center gap-1">
-                    <div className={`w-1.5 h-1.5 rounded-full ${machine.statusColor}`}></div>
-                    <span className="text-xs text-[#A1A1AA]">{machine.status}</span>
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${machine.statusColor}`}></div>
+                    <span className="text-[10px] sm:text-xs text-[#A1A1AA]">{machine.status}</span>
                   </div>
-                  <span className="text-xs text-[#A1A1AA]">Last: {machine.lastMaintenance}</span>
+                  <span className="text-[10px] sm:text-xs text-[#A1A1AA] truncate">Last: {machine.lastMaintenance}</span>
                 </div>
               </div>
             </Link>

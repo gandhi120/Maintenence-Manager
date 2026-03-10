@@ -106,9 +106,9 @@ export function MachineDetailView({ machine, projectId, maintenanceLog }: Machin
       <div className="space-y-4">
         {/* Hero Image + Info Card Row */}
         <div className="px-4 pt-4">
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             {/* Image */}
-            <div className="relative w-48 h-48 flex-shrink-0 bg-[#27272A] rounded-xl overflow-hidden">
+            <div className="relative w-full sm:w-48 h-48 flex-shrink-0 bg-[#27272A] rounded-xl overflow-hidden">
               {machine.image_url ? (
                 <img src={machine.image_url} alt={machine.name} className="w-full h-full object-cover" />
               ) : (

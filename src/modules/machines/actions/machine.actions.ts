@@ -101,7 +101,7 @@ export async function getMaintenanceLog(machineId: string) {
       technician:users!maintenance_log_technician_id_fkey(id, name)
     `)
     .eq('machine_id', machineId)
-    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
 
   return data || []
 }
@@ -110,6 +110,7 @@ export async function logMaintenance(machineId: string, projectId: string, formD
   maintenance_type: string
   date: string
   notes?: string
+  checklist?: Array<{ label: string; checked: boolean }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -126,11 +127,21 @@ export async function logMaintenance(machineId: string, projectId: string, formD
 
   if (error) return { error: error.message }
 
-  // Update machine's last maintenance date
-  await supabase
-    .from('machines')
-    .update({ last_maintenance_date: formData.date })
-    .eq('id', machineId)
+  // Update machine's last maintenance date to the latest log entry
+  const { data: latestLog } = await supabase
+    .from('maintenance_log')
+    .select('date')
+    .eq('machine_id', machineId)
+    .order('date', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (latestLog) {
+    await supabase
+      .from('machines')
+      .update({ last_maintenance_date: latestLog.date })
+      .eq('id', machineId)
+  }
 
   // Log activity
   await supabase.from('activity_log').insert({

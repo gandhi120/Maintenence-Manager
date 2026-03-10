@@ -1,7 +1,10 @@
+import Link from 'next/link'
 import { Calendar } from 'lucide-react'
 
 interface UpcomingMaintenanceProps {
   machines: Array<{
+    machineId: string
+    projectId: string
     machine: string
     project: string
     projectColor: string
@@ -24,8 +27,9 @@ export function UpcomingMaintenance({ machines }: UpcomingMaintenanceProps) {
       ) : (
         <div className="space-y-3">
           {machines.map((item, index) => (
-            <div
+            <Link
               key={index}
+              href={`/projects/${item.projectId}/machines/${item.machineId}`}
               className="flex items-center justify-between p-3 bg-[#27272A] rounded-lg hover:bg-[#27272A]/80 transition-colors cursor-pointer"
             >
               <div className="flex-1">
@@ -37,7 +41,7 @@ export function UpcomingMaintenance({ machines }: UpcomingMaintenanceProps) {
               <div className="text-right">
                 <div className="text-sm font-medium text-[#F59E0B]">Due in {item.dueIn}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

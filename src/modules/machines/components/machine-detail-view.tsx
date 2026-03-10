@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Calendar, Wrench, Edit } from 'lucide-react'
+import { ArrowLeft, Calendar, Wrench, Edit, Check, Square } from 'lucide-react'
 import { useAuth } from '@/shared/providers/auth-provider'
 import { canEditMachine, canLogMaintenance } from '@/lib/utils/permissions'
 import { LogMaintenanceModal } from './log-maintenance-modal'
@@ -30,6 +30,7 @@ interface MachineDetailViewProps {
     date: string
     maintenance_type: string
     notes: string | null
+    checklist?: Array<{ label: string; checked: boolean }> | null
     technician?: { id: string; name: string } | null
   }>
 }
@@ -103,48 +104,53 @@ export function MachineDetailView({ machine, projectId, maintenanceLog }: Machin
       </div>
 
       <div className="space-y-4">
-        {/* Hero Image */}
-        <div className="relative h-48 w-full bg-[#27272A] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#09090B] to-transparent z-10"></div>
-          {machine.image_url ? (
-            <img src={machine.image_url} alt={machine.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#52525B] text-sm">No Image</div>
-          )}
-          <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-white mb-1">{machine.name}</h2>
-              <span className="text-xs bg-[#27272A]/80 text-[#A1A1AA] px-2 py-1 rounded-md backdrop-blur-sm">{machine.type}</span>
+        {/* Hero Image + Info Card Row */}
+        <div className="px-4 pt-4">
+          <div className="flex gap-4">
+            {/* Image */}
+            <div className="relative w-48 h-48 flex-shrink-0 bg-[#27272A] rounded-xl overflow-hidden">
+              {machine.image_url ? (
+                <img src={machine.image_url} alt={machine.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[#52525B] text-sm">No Image</div>
+              )}
             </div>
-            <span className={`${statusColor} text-white text-xs px-3 py-1 rounded-full flex items-center gap-1`}>
-              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-              {status}
-            </span>
+
+            {/* Info Card */}
+            <div className="flex-1 bg-[#18181B] border border-[#3F3F46] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="text-lg font-bold text-[#FAFAFA]">{machine.name}</h2>
+                  <span className="text-xs text-[#A1A1AA]">{machine.type}</span>
+                </div>
+                <span className={`${statusColor} text-white text-xs px-3 py-1 rounded-full flex items-center gap-1`}>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  {status}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-[#A1A1AA] mb-1">Serial Number</p>
+                  <p className="text-sm text-[#FAFAFA] font-medium">{machine.serial_number || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#A1A1AA] mb-1">Location</p>
+                  <p className="text-sm text-[#FAFAFA] font-medium">{machine.zone || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#A1A1AA] mb-1">Added</p>
+                  <p className="text-sm text-[#FAFAFA] font-medium">{formatDate(machine.created_at)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#A1A1AA] mb-1">Status</p>
+                  <span className={`text-sm font-medium ${status === 'Active' ? 'text-[#10B981]' : status === 'Under Repair' ? 'text-[#F43F5E]' : 'text-[#71717A]'}`}>{status}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="px-4 space-y-4">
-          {/* Info Card */}
-          <div className="bg-[#18181B] border border-[#3F3F46] rounded-xl p-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-[#A1A1AA] mb-1">Serial Number</p>
-                <p className="text-sm text-[#FAFAFA] font-medium">{machine.serial_number || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-[#A1A1AA] mb-1">Location</p>
-                <p className="text-sm text-[#FAFAFA] font-medium">{machine.zone || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-[#A1A1AA] mb-1">Added</p>
-                <p className="text-sm text-[#FAFAFA] font-medium">{formatDate(machine.created_at)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-[#A1A1AA] mb-1">Status</p>
-                <span className={`text-sm font-medium ${status === 'Active' ? 'text-[#10B981]' : status === 'Under Repair' ? 'text-[#F43F5E]' : 'text-[#71717A]'}`}>{status}</span>
-              </div>
-            </div>
-          </div>
 
           {/* Next Maintenance Card */}
           {maintenance ? (
@@ -215,6 +221,22 @@ export function MachineDetailView({ machine, projectId, maintenanceLog }: Machin
                       </div>
                       <span className="text-xs bg-[#38BDF8]/20 text-[#38BDF8] px-2 py-0.5 rounded-md inline-block mb-2">{formatType(entry.maintenance_type)}</span>
                       {entry.notes && <p className="text-sm text-[#A1A1AA]">{entry.notes}</p>}
+                      {entry.checklist && entry.checklist.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {entry.checklist.map((item, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              {item.checked ? (
+                                <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                              ) : (
+                                <Square className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                              )}
+                              <span className={`text-xs ${item.checked ? 'line-through text-[#71717A]' : 'text-[#A1A1AA]'}`}>
+                                {item.label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

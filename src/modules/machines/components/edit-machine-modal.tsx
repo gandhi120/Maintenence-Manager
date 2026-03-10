@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { updateMachine } from '@/modules/machines/actions/machine.actions'
 import { useRouter } from 'next/navigation'
+import { MACHINE_TYPES } from '@/lib/utils/constants'
 
 interface EditMachineModalProps {
   open: boolean
@@ -38,6 +39,22 @@ export function EditMachineModal({ open, onOpenChange, machine, projectId }: Edi
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false)
+  const typeComboboxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (typeComboboxRef.current && !typeComboboxRef.current.contains(e.target as Node)) {
+        setTypeDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const filteredTypes = MACHINE_TYPES.filter((t) =>
+    t.toLowerCase().includes(formData.type.toLowerCase())
+  )
 
   if (!open) return null
 
@@ -88,17 +105,39 @@ export function EditMachineModal({ open, onOpenChange, machine, projectId }: Edi
               <input id="edit-name" type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full h-12 px-4 rounded-lg border border-[#3F3F46] bg-[#27272A] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA]" required />
             </div>
 
-            <div>
+            <div ref={typeComboboxRef} className="relative">
               <label htmlFor="edit-type" className="block text-sm text-[#A1A1AA] mb-2">Machine Type</label>
-              <select id="edit-type" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full h-12 px-4 rounded-lg border border-[#3F3F46] bg-[#27272A] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA]" required>
-                <option value="Crane">Crane</option>
-                <option value="Excavator">Excavator</option>
-                <option value="Generator">Generator</option>
-                <option value="Compressor">Compressor</option>
-                <option value="Pump">Pump</option>
-                <option value="Conveyor">Conveyor</option>
-                <option value="Custom">Custom</option>
-              </select>
+              <input
+                id="edit-type"
+                type="text"
+                value={formData.type}
+                onChange={(e) => {
+                  setFormData({ ...formData, type: e.target.value })
+                  setTypeDropdownOpen(true)
+                }}
+                onFocus={() => setTypeDropdownOpen(true)}
+                onKeyDown={(e) => { if (e.key === 'Escape') setTypeDropdownOpen(false) }}
+                placeholder="Select or type custom..."
+                className="w-full h-12 px-4 rounded-lg border border-[#3F3F46] bg-[#27272A] focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 text-[#FAFAFA] placeholder:text-[#52525B]"
+                required
+                autoComplete="off"
+              />
+              {typeDropdownOpen && filteredTypes.length > 0 && (
+                <ul className="absolute z-10 mt-1 w-full bg-[#18181B] border border-[#3F3F46] rounded-lg overflow-hidden shadow-lg">
+                  {filteredTypes.map((t) => (
+                    <li
+                      key={t}
+                      onMouseDown={() => {
+                        setFormData({ ...formData, type: t })
+                        setTypeDropdownOpen(false)
+                      }}
+                      className="px-4 py-2.5 text-[#FAFAFA] cursor-pointer hover:bg-[#27272A] transition-colors"
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div>

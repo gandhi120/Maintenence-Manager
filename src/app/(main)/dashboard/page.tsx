@@ -120,6 +120,8 @@ export default async function DashboardPage() {
     const dueDate = new Date(m.next_maintenance_date)
     const daysUntil = Math.max(0, Math.round((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     return {
+      machineId: m.id,
+      projectId: m.project?.id,
       machine: m.name,
       project: m.project?.name || 'Unknown',
       projectColor: `bg-[${m.project?.color || '#8B5CF6'}]`,

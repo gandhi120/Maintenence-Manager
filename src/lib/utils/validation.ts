@@ -33,7 +33,13 @@ export const workOrderSchema = z.object({
 })
 
 export const maintenanceLogSchema = z.object({
-  maintenance_type: z.enum(['routine', 'oil_change', 'repair', 'inspection', 'custom']),
+  maintenance_type: z.enum(['repair', 'inspection']),
   date: z.string().min(1, 'Date is required'),
   notes: z.string().max(1000).optional(),
 })
+
+export const checklistItemSchema = z.object({
+  label: z.string().min(1).max(200),
+  checked: z.boolean(),
+})
+export type ChecklistItem = z.infer<typeof checklistItemSchema>

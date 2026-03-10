@@ -5,7 +5,6 @@ export const MACHINE_TYPES = [
   'Compressor',
   'Pump',
   'Conveyor',
-  'Custom',
 ] as const
 
 export const MACHINE_STATUSES = ['active', 'inactive', 'under_repair'] as const
@@ -16,7 +15,12 @@ export const ISSUE_STATUSES = ['open', 'assigned', 'in_progress', 'resolved'] as
 
 export const WORK_ORDER_STATUSES = ['open', 'assigned', 'in_progress', 'completed'] as const
 
-export const MAINTENANCE_TYPES = ['routine', 'oil_change', 'repair', 'inspection', 'custom'] as const
+export const MAINTENANCE_TYPES = ['repair', 'inspection'] as const
+
+export const MAINTENANCE_CHECKLISTS: Record<string, string[]> = {
+  repair: ['Diagnose issue', 'Replace damaged parts', 'Test functionality', 'Safety check'],
+  inspection: ['Visual inspection', 'Measure readings', 'Document findings', 'Safety compliance check'],
+}
 
 export const USER_ROLES = ['owner', 'manager', 'technician'] as const
 
